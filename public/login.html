@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LifeOS - Authenticate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #F7EFE5;
+      --card-bg: #FFFFFF;
+      --border: #E8DDCD;
+      --text: #2C2825;
+      --muted: #8A8175;
+      --primary: #C96A3C;
+      --primary-hover: #b35c32;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .auth-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+      box-sizing: border-box;
+    }
+    .auth-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      margin: 0 0 8px 0;
+      color: var(--text);
+    }
+    .auth-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      font-family: inherit;
+      color: var(--text);
+      font-size: 14px;
+      box-sizing: border-box;
+      outline: none;
+    }
+    .form-group input:focus {
+      border-color: var(--primary);
+    }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--text);
+      color: var(--card-bg);
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 15px;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-secondary:hover {
+      border-color: var(--text);
+      transform: none;
+      box-shadow: none;
+    }
+    .error-msg {
+      color: #E05C5C;
+      font-size: 13px;
+      margin-bottom: 15px;
+      display: none;
+    }
+    .success-msg {
+      color: #3D6B4F;
+      font-size: 13px;
+      margin-bottom: 15px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-card">
+    <h1 class="auth-title">LifeOS</h1>
+    <div class="auth-subtitle">Secure access to your personal dashboard</div>
+    
+    <div id="error-box" class="error-msg"></div>
+    <div id="success-box" class="success-msg"></div>
+
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="auth-email" placeholder="you@example.com">
+    </div>
+    
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="auth-password" placeholder="••••••••">
+    </div>
+
+    <button class="btn" onclick="handleAuth('login')">Sign In</button>
+    <button class="btn btn-secondary" onclick="handleAuth('signup')">Create Account</button>
+  </div>
+
+  <script>
+    // These need to match the actual public URL and ANON key of Supabase
+    const SUPABASE_URL = "https://tkrbsthwvqqvnmoyouxh.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_lkzU8WcEHiRnWkVdxtuWPA_GDRKXyho";
+    const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function handleAuth(action) {
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+      const errorBox = document.getElementById('error-box');
+      const successBox = document.getElementById('success-box');
+      errorBox.style.display = 'none';
+      successBox.style.display = 'none';
+
+      if (!email || !password) {
+        errorBox.textContent = "Please fill out both fields";
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      let res;
+      if (action === 'signup') {
+        res = await sbClient.auth.signUp({ email, password });
+      } else {
+        res = await sbClient.auth.signInWithPassword({ email, password });
+      }
+
+      if (res.error) {
+        errorBox.textContent = res.error.message;
+        errorBox.style.display = 'block';
+      } else {
+        // Success! Store the token and redirect!
+        if (action === 'signup' && !res.data.session) {
+          successBox.textContent = "Check your email for confirmation link!";
+          successBox.style.display = 'block';
+        } else if (res.data.session) {
+          localStorage.setItem('lifeos-token', res.data.session.access_token);
+          window.location.href = '/';
+        }
+      }
+    }
+  </script>
+</body>
+</html>

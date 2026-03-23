@@ -1,3 +1,26 @@
+const lifeosToken = localStorage.getItem('lifeos-token');
+if (!lifeosToken) window.location.href = '/login.html';
+
+const originalFetch = window.fetch;
+window.fetch = async function () {
+  let [resource, config] = arguments;
+  if (!config) config = {};
+  if (!config.headers) config.headers = {};
+  config.headers['Authorization'] = `Bearer ${lifeosToken}`;
+  
+  const response = await originalFetch(resource, config);
+  if (response.status === 401) {
+    localStorage.removeItem('lifeos-token');
+    window.location.href = '/login.html';
+  }
+  return response;
+};
+
+function logout() {
+  localStorage.removeItem('lifeos-token');
+  window.location.href = '/login.html';
+}
+
 // ═══════════════ STATE ═══════════════
 const COLORS = {
   terracotta: { bg: '#F7EDE6', fill: '#C96A3C', text: '#8A3A1A' },
