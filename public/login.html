@@ -151,6 +151,14 @@
     const SUPABASE_ANON_KEY = "sb_publishable_lkzU8WcEHiRnWkVdxtuWPA_GDRKXyho";
     const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Automatically log in if the user clicks the Magic Link in their email
+    sbClient.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        localStorage.setItem('lifeos-token', session.access_token);
+        window.location.href = '/';
+      }
+    });
+
     let currentEmail = "";
 
     async function sendOtp() {
