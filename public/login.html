@@ -117,67 +117,105 @@
 </head>
 <body>
 
-  <div class="auth-card">
+  <div class="auth-card" id="auth-step-1">
     <h1 class="auth-title">LifeOS</h1>
-    <div class="auth-subtitle">Secure access to your personal dashboard</div>
+    <div class="auth-subtitle">Secure Passwordless Login</div>
     
     <div id="error-box" class="error-msg"></div>
-    <div id="success-box" class="success-msg"></div>
 
     <div class="form-group">
-      <label>Email</label>
+      <label>Email Address</label>
       <input type="email" id="auth-email" placeholder="you@example.com">
     </div>
+
+    <button class="btn" id="send-btn" onclick="sendOtp()">Send Magic Code</button>
+  </div>
+
+  <div class="auth-card" id="auth-step-2" style="display: none;">
+    <h1 class="auth-title">Verify Code</h1>
+    <div class="auth-subtitle">We sent a 6-digit code to your email.</div>
     
+    <div id="error-box-2" class="error-msg"></div>
+
     <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="auth-password" placeholder="••••••••">
+      <label>Secret Code</label>
+      <input type="text" id="auth-code" placeholder="123456" autocomplete="one-time-code">
     </div>
 
-    <button class="btn" onclick="handleAuth('login')">Sign In</button>
-    <button class="btn btn-secondary" onclick="handleAuth('signup')">Create Account</button>
+    <button class="btn" id="verify-btn" onclick="verifyOtp()">Secure Login</button>
+    <button class="btn btn-secondary" onclick="goBack()">← Use Another Email</button>
   </div>
 
   <script>
-    // These need to match the actual public URL and ANON key of Supabase
     const SUPABASE_URL = "https://tkrbsthwvqqvnmoyouxh.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_lkzU8WcEHiRnWkVdxtuWPA_GDRKXyho";
     const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    async function handleAuth(action) {
-      const email = document.getElementById('auth-email').value;
-      const password = document.getElementById('auth-password').value;
-      const errorBox = document.getElementById('error-box');
-      const successBox = document.getElementById('success-box');
-      errorBox.style.display = 'none';
-      successBox.style.display = 'none';
+    let currentEmail = "";
 
-      if (!email || !password) {
-        errorBox.textContent = "Please fill out both fields";
+    async function sendOtp() {
+      const email = document.getElementById('auth-email').value.trim();
+      const errorBox = document.getElementById('error-box');
+      errorBox.style.display = 'none';
+
+      if (!email) {
+        errorBox.textContent = "Please enter an email address";
         errorBox.style.display = 'block';
         return;
       }
 
-      let res;
-      if (action === 'signup') {
-        res = await sbClient.auth.signUp({ email, password });
-      } else {
-        res = await sbClient.auth.signInWithPassword({ email, password });
-      }
+      document.getElementById('send-btn').textContent = "Sending...";
 
-      if (res.error) {
-        errorBox.textContent = res.error.message;
+      const { data, error } = await sbClient.auth.signInWithOtp({
+        email: email,
+        options: { shouldCreateUser: true }
+      });
+
+      document.getElementById('send-btn').textContent = "Send Magic Code";
+
+      if (error) {
+        errorBox.textContent = error.message;
         errorBox.style.display = 'block';
       } else {
-        // Success! Store the token and redirect!
-        if (action === 'signup' && !res.data.session) {
-          successBox.textContent = "Check your email for confirmation link!";
-          successBox.style.display = 'block';
-        } else if (res.data.session) {
-          localStorage.setItem('lifeos-token', res.data.session.access_token);
-          window.location.href = '/';
-        }
+        currentEmail = email;
+        document.getElementById('auth-step-1').style.display = 'none';
+        document.getElementById('auth-step-2').style.display = 'block';
       }
+    }
+
+    async function verifyOtp() {
+      const token = document.getElementById('auth-code').value.trim();
+      const errorBox = document.getElementById('error-box-2');
+      errorBox.style.display = 'none';
+
+      if (!token) {
+        errorBox.textContent = "Please enter the 6-digit code";
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      document.getElementById('verify-btn').textContent = "Verifying...";
+
+      const { data, error } = await sbClient.auth.verifyOtp({
+        email: currentEmail,
+        token: token,
+        type: 'email'
+      });
+
+      document.getElementById('verify-btn').textContent = "Secure Login";
+
+      if (error) {
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+      } else if (data.session) {
+        localStorage.setItem('lifeos-token', data.session.access_token);
+        window.location.href = '/';
+      }
+    }
+
+    function goBack() {
+      document.getElementById('auth-step-2').style.display = 'none';
+      document.getElementById('auth-step-1').style.display = 'block';
     }
   </script>
 </body>
