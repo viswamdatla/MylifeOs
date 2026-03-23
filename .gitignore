@@ -1,0 +1,14 @@
+# Node dependencies
+node_modules/
+
+# Environment files containing secrets
+.env
+.env.local
+
+# Local SQLite databases (no longer needed, but good to ignore)
+*.sqlite
+*.sqlite-journal
+
+# Vercel and system files
+.vercel/
+.DS_Store

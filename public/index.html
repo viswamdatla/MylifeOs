@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Life OS — Personal Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream: #FAF7F2;
+  --ink: #1A1612;
+  --ink-light: #3D3530;
+  --muted: #8A7F78;
+  --muted-light: #C4BAB3;
+  --border: #E8E0D8;
+  --border-dark: #D4C9BF;
+  --surface: #FFFFFF;
+  --surface2: #F5F0EA;
+  --terracotta: #C96A3C;
+  --terracotta-light: #E8895C;
+  --forest: #3D6B4F;
+  --forest-light: #5A9970;
+  --sky: #3A6B8A;
+  --sky-light: #5A8FAF;
+  --gold: #B8923A;
+  --gold-light: #D4AD55;
+  --rose: #B84A6A;
+  --rose-light: #D46A8A;
+  --shadow-sm: 0 1px 3px rgba(26,22,18,0.06), 0 1px 2px rgba(26,22,18,0.04);
+  --shadow-md: 0 4px 16px rgba(26,22,18,0.08), 0 2px 6px rgba(26,22,18,0.05);
+  --shadow-lg: 0 12px 40px rgba(26,22,18,0.12), 0 4px 12px rgba(26,22,18,0.06);
+  --r: 14px;
+  --r-sm: 8px;
+  --r-lg: 20px;
+}
+
+html { font-size: 15px; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ── NOISE TEXTURE ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* ── LAYOUT ── */
+.shell { display: flex; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar-brand {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.brand-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: var(--cream);
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.brand-tagline {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.sidebar-date {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-date-day {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.sidebar-date-full {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 3px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-section-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.2);
+  padding: 12px 24px 6px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  cursor: pointer;
+  color: rgba(255,255,255,0.45);
+  font-size: 13.5px;
+  font-weight: 400;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  transition: all 0.18s ease;
+  position: relative;
+  border-radius: 0;
+  font-family: 'Outfit', sans-serif;
+}
+
+.nav-btn:hover { color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.04); }
+
+.nav-btn.active {
+  color: var(--cream);
+  background: rgba(255,255,255,0.07);
+}
+
+.nav-btn.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 8px; bottom: 8px;
+  width: 2.5px;
+  border-radius: 0 2px 2px 0;
+}
+
+.nav-btn[data-tab="overview"].active::before { background: var(--terracotta); }
+.nav-btn[data-tab="finance"].active::before { background: var(--forest); }
+.nav-btn[data-tab="goals"].active::before { background: var(--gold); }
+.nav-btn[data-tab="tasks"].active::before { background: var(--sky); }
+.nav-btn[data-tab="habits"].active::before { background: var(--rose); }
+.nav-btn[data-tab="calendar"].active::before { background: var(--terracotta); }
+
+.nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+
+.nav-badge {
+  margin-left: auto;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.5);
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 100px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.sidebar-footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 11px;
+  color: rgba(255,255,255,0.2);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── MAIN CONTENT ── */
+.content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 36px 40px;
+}
+
+.tab-pane { display: none; animation: fadeIn 0.25s ease; }
+.tab-pane.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── PAGE HEADER ── */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.page-title span {
+  font-style: italic;
+  font-weight: 400;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 5px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── BUTTON SYSTEM ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: var(--r-sm);
+  border: none;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.16s ease;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--cream);
+}
+.btn-primary:hover { background: var(--ink-light); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border-dark);
+}
+.btn-ghost:hover { background: var(--surface2); color: var(--ink); }
+
+.btn-colored { color: white; }
+.btn-terracotta { background: var(--terracotta); }
+.btn-terracotta:hover { background: var(--terracotta-light); transform: translateY(-1px); }
+.btn-forest { background: var(--forest); }
+.btn-forest:hover { background: var(--forest-light); transform: translateY(-1px); }
+.btn-sky { background: var(--sky); }
+.btn-sky:hover { background: var(--sky-light); transform: translateY(-1px); }
+.btn-rose { background: var(--rose); }
+.btn-rose:hover { background: var(--rose-light); transform: translateY(-1px); }
+.btn-gold { background: var(--gold); }
+.btn-gold:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+.btn-sm { padding: 6px 13px; font-size: 12px; }
+.btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+.btn-icon { padding: 7px; }
+
+.btn-danger { background: #e53e3e; color: white; }
+.btn-danger:hover { background: #c53030; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-padded { padding: 24px; }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── GRID ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.grid-main { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+
+/* ── STAT CARDS ── */
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+.stat-accent-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: var(--r) var(--r) 0 0;
+}
+
+.stat-label {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 10px;
+}
+
+.stat-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.stat-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.stat-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 2px 7px;
+  border-radius: 100px;
+  margin-top: 8px;
+}
+.delta-up { background: #E8F5ED; color: var(--forest); }
+.delta-down { background: #FDECEA; color: #C53030; }
+
+/* ── FORM ELEMENTS ── */
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+input[type="text"], input[type="number"], input[type="date"],
+input[type="time"], select, textarea {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(26,22,18,0.06);
+}
+
+select { cursor: pointer; }
+textarea { resize: vertical; min-height: 72px; }
+
+.form-row { display: grid; gap: 14px; margin-bottom: 14px; }
+.form-row-2 { grid-template-columns: 1fr 1fr; }
+.form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-row-1 { grid-template-columns: 1fr; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26,22,18,0.55);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: 32px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.92) translateY(16px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  margin-bottom: 24px;
+  color: var(--ink);
+}
+
+.modal-actions {
+  display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;
+}
+
+/* Habit Toggle Switch */
+.toggle-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 20px; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px;
+}
+.toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #E2DBD2; transition: .3s; border-radius: 24px;
+}
+.slider:before {
+  position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+  background-color: white; transition: .3s; border-radius: 50%;
+}
+.toggle-switch input:checked + .slider { background-color: #3d6b4f; }
+.toggle-switch input:checked + .slider:before { transform: translateX(20px); }
+
+.day-pills { display: flex; gap: 8px; margin-top: 10px; }
+.day-pill {
+  width: 44px; height: 32px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  border: 1px solid var(--border); background: #fff; color: var(--muted);
+  transition: all 0.2s ease; user-select: none;
+}
+.day-pill.active { background: #3d6b4f; color: #fff; border-color: #3d6b4f; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: var(--ink);
+  color: var(--cream);
+  padding: 12px 20px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  z-index: 2000;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.25s ease;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── OVERVIEW TAB ── */
+.greeting {
+  font-family: 'Playfair Display', serif;
+  font-size: 38px;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  color: var(--ink);
+  line-height: 1.15;
+}
+.greeting em { font-style: italic; color: var(--terracotta); }
+
+.overview-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  margin-top: 6px;
+}
+
+/* ── FINANCE TAB ── */
+.txn-list { display: flex; flex-direction: column; gap: 2px; }
+
+.txn-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: var(--r-sm);
+  transition: background 0.14s;
+  cursor: default;
+}
+.txn-row:hover { background: var(--surface2); }
+
+.txn-dot {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.txn-info { flex: 1; min-width: 0; }
+.txn-name { font-size: 13.5px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.txn-meta { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+.txn-amount {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.txn-amount.income { color: var(--forest); }
+.txn-amount.expense { color: #C53030; }
+
+.del-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted-light);
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.txn-row:hover .del-btn,
+.goal-card:hover .del-btn,
+.task-card:hover .del-btn,
+.habit-row:hover .del-btn,
+.event-pill:hover .del-btn { opacity: 1; }
+.del-btn:hover { color: #C53030; background: #FDECEA; }
+
+/* Budget bars */
+.budget-item { margin-bottom: 16px; }
+.budget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+.budget-name { font-size: 13px; font-weight: 500; }
+.budget-nums { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.budget-track { background: var(--surface2); border-radius: 100px; height: 6px; overflow: hidden; }
+.budget-fill { height: 100%; border-radius: 100px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* Spending chart */
+.cat-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.cat-label { font-size: 12px; color: var(--muted); width: 100px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'JetBrains Mono', monospace; }
+.cat-track { flex: 1; background: var(--surface2); border-radius: 100px; height: 8px; overflow: hidden; }
+.cat-fill { height: 100%; border-radius: 100px; }
+.cat-val { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--muted); width: 60px; text-align: right; flex-shrink: 0; }
+
+/* ── GOALS TAB ── */
+.goals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+
+.goal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.18s, box-shadow 0.18s;
+  position: relative;
+}
+.goal-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+.goal-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.goal-emoji { font-size: 30px; line-height: 1; }
+.goal-badge { font-size: 10px; padding: 3px 9px; border-radius: 100px; font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.3px; }
+
+.goal-title { font-family: 'Playfair Display', serif; font-size: 18px; margin: 10px 0 4px; color: var(--ink); }
+.goal-deadline { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+.goal-progress { margin-top: 16px; }
+.goal-progress-nums { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 7px; }
+.goal-track { background: var(--surface2); border-radius: 100px; height: 8px; overflow: hidden; }
+.goal-fill { height: 100%; border-radius: 100px; transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
+
+.goal-actions { display: flex; gap: 8px; margin-top: 16px; align-items: center; }
+.goal-input { padding: 7px 10px; font-size: 12px; }
+
+/* ── TASKS TAB ── */
+.kanban { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: start; }
+
+.kanban-col { }
+
+.kanban-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.kanban-col-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.col-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+.col-count {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.task-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.16s;
+  cursor: default;
+  position: relative;
+}
+.task-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+.task-title { font-size: 13.5px; font-weight: 500; color: var(--ink); line-height: 1.4; }
+.task-title.done-text { text-decoration: line-through; color: var(--muted); }
+
+.task-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.task-tag { font-size: 10px; padding: 3px 8px; border-radius: 100px; font-family: 'JetBrains Mono', monospace; }
+
+.task-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.task-due { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.task-actions { display: flex; gap: 5px; }
+
+.priority-dot { width: 6px; height: 6px; border-radius: 50%; position: absolute; top: 14px; right: 14px; }
+
+/* ── HABITS TAB ── */
+.habits-grid { display: flex; flex-direction: column; gap: 2px; margin-bottom: 28px; }
+
+.habit-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: var(--r-sm);
+  transition: background 0.14s;
+  cursor: default;
+}
+.habit-row:hover { background: var(--surface2); }
+
+.habit-icon-wrap {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.habit-info { flex: 1; }
+.habit-name { font-size: 14px; font-weight: 500; }
+.habit-streak {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.habit-week { display: flex; gap: 5px; }
+
+.h-dot {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-dark);
+  background: var(--surface);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  color: var(--muted-light);
+  font-family: 'JetBrains Mono', monospace;
+  transition: all 0.15s;
+  font-size: 9px;
+  letter-spacing: -0.3px;
+  flex-shrink: 0;
+  user-select: none;
+}
+.h-dot:hover:not(.checked) { border-color: var(--forest); color: var(--forest); }
+.h-dot.checked { background: var(--forest); border-color: var(--forest); color: white; font-size: 13px; }
+.h-dot.today-dot { border-color: var(--ink); }
+
+.habit-stat-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+/* ── CALENDAR TAB ── */
+.cal-shell { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+
+.cal-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.cal-month-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 700;
+  flex: 1;
+}
+
+.cal-grid-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.cal-wday {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  padding: 6px 0;
+}
+
+.cal-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 8px 4px 4px;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.14s;
+  min-height: 52px;
+  position: relative;
+}
+
+.cal-day:hover { background: var(--surface2); }
+.cal-day.today { background: var(--ink); color: white; }
+.cal-day.today .cal-day-num { color: white; }
+.cal-day.selected { border-color: var(--terracotta); background: rgba(201, 106, 60, 0.06); }
+.cal-day.selected .cal-day-num { color: var(--terracotta); }
+.cal-day.other-month .cal-day-num { color: var(--muted-light); }
+
+.cal-day-num { font-size: 13px; font-weight: 500; line-height: 1; }
+
+.cal-day-dots { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; margin-top: 5px; }
+
+.event-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+/* Event panel */
+.event-panel { }
+.event-panel-title { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 16px; color: var(--ink); }
+
+.event-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  margin-bottom: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.event-color-bar { width: 4px; height: 36px; border-radius: 100px; flex-shrink: 0; }
+.event-title-text { font-size: 13px; font-weight: 500; flex: 1; }
+.event-time-text { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+.no-events { text-align: center; padding: 28px 0; color: var(--muted); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 100px; }
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+/* ── EMPTY STATE ── */
+.empty { text-align: center; padding: 36px 0; color: var(--muted); }
+.empty-icon { font-size: 36px; margin-bottom: 10px; }
+.empty-text { font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+
+/* ── UTILITIES ── */
+.mb-4 { margin-bottom: 4px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.mb-24 { margin-bottom: 24px; }
+.mb-32 { margin-bottom: 32px; }
+.flex { display: flex; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.text-muted { color: var(--muted); font-size: 12px; }
+.font-mono { font-family: 'JetBrains Mono', monospace; }
+.text-forest { color: var(--forest); }
+.text-red { color: #C53030; }
+
+/* Colored chip */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 100px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+}
+
+/* Segment tabs (for finance) */
+.seg { display: flex; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 3px; gap: 2px; }
+.seg-btn { padding: 6px 14px; border-radius: 6px; border: none; background: none; font-family: 'Outfit', sans-serif; font-size: 12px; cursor: pointer; color: var(--muted); transition: all 0.14s; }
+.seg-btn.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); font-weight: 500; }
+
+/* ── DIET TAB ── */
+.diet-date-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.diet-date-label {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  flex: 1;
+  letter-spacing: -0.3px;
+}
+.macro-rings {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.macro-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  transition: transform 0.18s, box-shadow 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.macro-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.macro-ring-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 12px;
+}
+.macro-ring-wrap svg { transform: rotate(-90deg); }
+.macro-ring-bg { fill: none; stroke-width: 7; }
+.macro-ring-fill { fill: none; stroke-width: 7; stroke-linecap: round; transition: stroke-dasharray 0.7s cubic-bezier(0.4,0,0.2,1); }
+.macro-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+}
+.macro-ring-val { font-size: 15px; font-weight: 500; color: var(--ink); line-height: 1; }
+.macro-ring-unit { font-size: 9px; color: var(--muted); margin-top: 2px; }
+.macro-name { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.macro-sub { font-size: 11px; color: var(--muted); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+
+.meal-section { margin-bottom: 20px; }
+.meal-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  cursor: pointer;
+  transition: background 0.14s;
+}
+.meal-section-header:hover { background: var(--border); }
+.meal-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.meal-section-meta {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+}
+.meal-items {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--r-sm) var(--r-sm);
+  overflow: hidden;
+}
+.meal-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+  cursor: default;
+}
+.meal-item:last-child { border-bottom: none; }
+.meal-item:hover { background: var(--surface2); }
+.meal-item-name { flex: 1; font-size: 13.5px; font-weight: 500; }
+.meal-item-qty { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; min-width: 60px; }
+.meal-item-cal { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; color: var(--terracotta); min-width: 55px; text-align: right; }
+.meal-item-macros { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; min-width: 130px; text-align: right; }
+.meal-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-family: 'Outfit', sans-serif;
+  cursor: pointer;
+  transition: color 0.14s;
+  width: 100%;
+  text-align: left;
+}
+.meal-add-btn:hover { color: var(--forest); }
+
+.water-track { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.water-cup {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-dark);
+  background: var(--surface);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  transition: all 0.15s;
+  user-select: none;
+}
+.water-cup:hover:not(.filled) { border-color: var(--sky); }
+.water-cup.filled { background: var(--sky); border-color: var(--sky); }
+
+.diet-log-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 16px;
+  border-radius: var(--r-sm);
+  transition: background 0.12s;
+}
+.diet-log-row:hover { background: var(--surface2); }
+.diet-log-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); min-width: 80px; }
+.diet-log-cals { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; color: var(--terracotta); min-width: 70px; }
+.diet-log-bar { flex: 1; background: var(--surface2); border-radius: 100px; height: 5px; overflow: hidden; }
+.diet-log-fill { height: 100%; border-radius: 100px; background: var(--terracotta); }
+
+@media (max-width: 900px) {
+  .macro-rings { grid-template-columns: 1fr 1fr; }
+}
+
+</style>
+</head>
+
+<body>
+<div class="shell">
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-name">Life OS</div>
+    <div class="brand-tagline">Personal Dashboard</div>
+  </div>
+  <div class="sidebar-date">
+    <div class="sidebar-date-day" id="sb-weekday"></div>
+    <div class="sidebar-date-full" id="sb-date"></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Modules</div>
+    <button class="nav-btn active" data-tab="overview" onclick="switchTab('overview')">
+      <span class="nav-icon">◈</span>
+      <span class="nav-label">Overview</span>
+    </button>
+    <button class="nav-btn" data-tab="finance" onclick="switchTab('finance')">
+      <span class="nav-icon">₹</span>
+      <span class="nav-label">Finance</span>
+      <span class="nav-badge" id="nb-finance">0</span>
+    </button>
+    <button class="nav-btn" data-tab="goals" onclick="switchTab('goals')">
+      <span class="nav-icon">◎</span>
+      <span class="nav-label">Goals</span>
+      <span class="nav-badge" id="nb-goals">0</span>
+    </button>
+    <button class="nav-btn" data-tab="tasks" onclick="switchTab('tasks')">
+      <span class="nav-icon">✦</span>
+      <span class="nav-label">Tasks</span>
+      <span class="nav-badge" id="nb-tasks">0</span>
+    </button>
+    <button class="nav-btn" data-tab="habits" onclick="switchTab('habits')">
+      <span class="nav-icon">⟳</span>
+      <span class="nav-label">Habits</span>
+      <span class="nav-badge" id="nb-habits">0</span>
+    </button>
+    <button class="nav-btn" data-tab="diet" onclick="switchTab('diet')">
+      <span class="nav-icon">🥗</span>
+      <span class="nav-label">Diet</span>
+      <span class="nav-badge" id="nb-diet">0</span>
+    </button>
+
+    <button class="nav-btn" data-tab="calendar" onclick="switchTab('calendar')">
+      <span class="nav-icon">▦</span>
+      <span class="nav-label">Calendar</span>
+      <span class="nav-badge" id="nb-events">0</span>
+    </button>
+  </nav>
+  <div class="sidebar-footer">v2.0 · auto-saved</div>
+</aside>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main class="content">
+
+  <!-- ══ OVERVIEW ══ -->
+  <div class="tab-pane active" id="tab-overview">
+    <div class="mb-32">
+      <div class="greeting" id="ov-greeting">Good morning</div>
+      <div class="overview-meta" id="ov-meta"></div>
+    </div>
+
+    <div class="grid-4 mb-20" id="ov-stats"></div>
+
+    <div class="grid-main mb-20">
+      <div class="card card-padded">
+        <div class="card-header">
+          <div class="card-title">Recent Transactions</div>
+          <button class="btn btn-ghost btn-sm" onclick="switchTab('finance')">View all →</button>
+        </div>
+        <div id="ov-txns"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="card card-padded">
+          <div class="card-header">
+            <div class="card-title">Today's Tasks</div>
+          </div>
+          <div id="ov-tasks"></div>
+        </div>
+        <div class="card card-padded">
+          <div class="card-header">
+            <div class="card-title">Upcoming Events</div>
+          </div>
+          <div id="ov-events"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card-padded">
+        <div class="card-header">
+          <div class="card-title">Active Goals</div>
+        </div>
+        <div id="ov-goals"></div>
+      </div>
+      <div class="card card-padded">
+        <div class="card-header">
+          <div class="card-title">Habit Check-in</div>
+        </div>
+        <div id="ov-habits"></div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px" class="grid-2">
+      <div class="card card-padded">
+        <div class="card-header">
+          <div class="card-title">🥗 Today's Nutrition</div>
+          <button class="btn btn-ghost btn-sm" onclick="switchTab('diet')">View all →</button>
+        </div>
+        <div id="ov-diet"></div>
+      </div>
+      <div class="card card-padded">
+        <div class="card-header">
+          <div class="card-title">💧 Water Today</div>
+        </div>
+        <div id="ov-water"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ FINANCE ══ -->
+  <div class="tab-pane" id="tab-finance">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Finance <span>tracker</span></div>
+        <div class="page-subtitle">Track every rupee</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('m-txn')">+ Add Transaction</button>
+    </div>
+
+    <div class="grid-4 mb-20" id="fin-stats"></div>
+
+    <div class="grid-main">
+      <div>
+        <div class="card card-padded mb-20">
+          <div class="card-header">
+            <div class="card-title">Transactions</div>
+            <div class="seg">
+              <button class="seg-btn active" onclick="setTxnFilter('all', this)">All</button>
+              <button class="seg-btn" onclick="setTxnFilter('income', this)">Income</button>
+              <button class="seg-btn" onclick="setTxnFilter('expense', this)">Expense</button>
+            </div>
+          </div>
+          <div class="txn-list" id="fin-txns"></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="card card-padded">
+          <div class="card-header"><div class="card-title">Spending by Category</div></div>
+          <div id="fin-cats"></div>
+        </div>
+        <div class="card card-padded">
+          <div class="card-header"><div class="card-title">Budget Limits</div></div>
+          <div id="fin-budgets"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ GOALS ══ -->
+  <div class="tab-pane" id="tab-goals">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Goals <span>&amp; milestones</span></div>
+        <div class="page-subtitle">Build your future, one step at a time</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('m-goal')">+ New Goal</button>
+    </div>
+    <div class="goals-grid" id="goals-grid"></div>
+  </div>
+
+  <!-- ══ TASKS ══ -->
+  <div class="tab-pane" id="tab-tasks">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Tasks <span>&amp; to-dos</span></div>
+        <div class="page-subtitle">Move things forward</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('m-task')">+ New Task</button>
+    </div>
+    <div class="kanban" id="kanban"></div>
+  </div>
+
+  <!-- ══ HABITS ══ -->
+  <div class="tab-pane" id="tab-habits">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Habits <span>&amp; streaks</span></div>
+        <div class="page-subtitle">Small actions, compounding results</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('m-habit')">+ New Habit</button>
+    </div>
+
+    <div class="card card-padded mb-20">
+      <div class="card-header">
+        <div class="card-title" id="habit-week-title">This Week</div>
+        <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted)" id="habit-week-range"></div>
+      </div>
+      <div class="habits-grid" id="habits-list"></div>
+    </div>
+
+    <div class="habit-stat-cards" id="habit-stats"></div>
+  </div>
+
+  <div class="tab-pane" id="tab-diet">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Diet <span>&amp; nutrition</span></div>
+        <div class="page-subtitle">Fuel your body, track every meal</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('m-food')">+ Log Food</button>
+    </div>
+
+    <!-- Date nav -->
+    <div class="diet-date-nav">
+      <button class="btn btn-ghost btn-sm" onclick="dietNav(-1)">‹ Prev</button>
+      <div class="diet-date-label" id="diet-date-label"></div>
+      <button class="btn btn-ghost btn-sm" onclick="dietNav(1)">Next ›</button>
+      <button class="btn btn-ghost btn-sm" onclick="dietGoToday()">Today</button>
+    </div>
+
+    <!-- Macro rings -->
+    <div class="macro-rings" id="macro-rings"></div>
+
+    <!-- Meals + sidebar -->
+    <div class="grid-main">
+      <div id="diet-meals"></div>
+      <div style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- Water tracker -->
+        <div class="card card-padded">
+          <div class="card-header">
+            <div class="card-title">💧 Water Intake</div>
+            <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted)" id="water-label"></div>
+          </div>
+          <div class="water-track" id="water-track"></div>
+          <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:10px">Click each cup = 250ml</div>
+        </div>
+
+        <!-- Calorie goal -->
+        <div class="card card-padded">
+          <div class="card-header">
+            <div class="card-title">🎯 Daily Goal</div>
+          </div>
+          <div id="diet-goal-display"></div>
+          <div style="margin-top:12px">
+            <label class="form-label">Calorie Goal</label>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <input type="number" id="cal-goal-input" placeholder="2000" style="font-size:13px">
+              <button class="btn btn-ghost btn-sm" onclick="saveCalGoal()">Set</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7-day history -->
+        <div class="card card-padded">
+          <div class="card-header"><div class="card-title">7-Day Calories</div></div>
+          <div id="diet-history"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ CALENDAR ══ -->
+  <div class="tab-pane" id="tab-calendar">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Calendar</div>
+        <div class="page-subtitle">Stay on top of your schedule</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('m-event')">+ New Event</button>
+    </div>
+
+    <div class="cal-shell">
+      <div>
+        <div class="cal-header-nav">
+          <div class="cal-month-title" id="cal-month-title"></div>
+          <button class="btn btn-ghost btn-sm" onclick="calNav(-1)">‹ Prev</button>
+          <button class="btn btn-ghost btn-sm" onclick="calNav(1)">Next ›</button>
+          <button class="btn btn-ghost btn-sm" onclick="calGoToday()">Today</button>
+        </div>
+        <div class="cal-grid-wrap">
+          <div class="cal-weekdays">
+            <div class="cal-wday">Mon</div><div class="cal-wday">Tue</div>
+            <div class="cal-wday">Wed</div><div class="cal-wday">Thu</div>
+            <div class="cal-wday">Fri</div><div class="cal-wday">Sat</div>
+            <div class="cal-wday">Sun</div>
+          </div>
+          <div class="cal-days" id="cal-days"></div>
+        </div>
+      </div>
+      <div class="event-panel card card-padded">
+        <div class="event-panel-title" id="event-panel-title">Events</div>
+        <div id="event-panel-list"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+
+<!-- Transaction Modal -->
+<div class="modal-overlay" id="m-txn">
+  <div class="modal">
+    <div class="modal-title">Add Transaction</div>
+    <div class="form-row form-row-1"><div class="form-group">
+      <label class="form-label">Description</label>
+      <input type="text" id="txn-desc" placeholder="e.g. Swiggy dinner">
+    </div></div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Amount (₹)</label>
+        <input type="number" id="txn-amount" placeholder="0.00" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select id="txn-type">
+          <option value="expense">Expense</option>
+          <option value="income">Income</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select id="txn-cat">
+          <option>Food & Dining</option><option>Transport</option>
+          <option>Shopping</option><option>Bills & Utilities</option>
+          <option>Health</option><option>Entertainment</option>
+          <option>Investment</option><option>Salary</option>
+          <option>Freelance</option><option>Trading P&L</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" id="txn-date">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('m-txn')">Cancel</button>
+      <button class="btn btn-primary" onclick="addTransaction()">Add Transaction</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Modal -->
+<div class="modal-overlay" id="m-goal">
+  <div class="modal">
+    <div class="modal-title">Create New Goal</div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Emoji</label>
+        <input type="text" id="goal-emoji" placeholder="🎯" maxlength="2" style="font-size:22px;text-align:center">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category Color</label>
+        <select id="goal-color">
+          <option value="terracotta">🟠 Terracotta</option>
+          <option value="forest">🟢 Forest</option>
+          <option value="sky">🔵 Sky</option>
+          <option value="gold">🟡 Gold</option>
+          <option value="rose">🔴 Rose</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row form-row-1"><div class="form-group">
+      <label class="form-label">Goal Title</label>
+      <input type="text" id="goal-name" placeholder="e.g. Emergency Fund">
+    </div></div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Target (₹ or units)</label>
+        <input type="number" id="goal-target" placeholder="100000" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Current Progress</label>
+        <input type="number" id="goal-current" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="form-row form-row-1"><div class="form-group">
+      <label class="form-label">Target Date</label>
+      <input type="date" id="goal-deadline">
+    </div></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('m-goal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addGoal()">Create Goal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Task Modal -->
+<div class="modal-overlay" id="m-task">
+  <div class="modal">
+    <div class="modal-title">New Task</div>
+    <div class="form-row form-row-1"><div class="form-group">
+      <label class="form-label">Task Description</label>
+      <input type="text" id="task-title" placeholder="e.g. Apply for DevOps role at Infosys">
+    </div></div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Priority</label>
+        <select id="task-priority">
+          <option value="high">🔴 High</option>
+          <option value="medium" selected>🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tag</label>
+        <select id="task-tag">
+          <option>Job Hunt</option><option>Trading</option>
+          <option>Learning</option><option>Personal</option>
+          <option>Finance</option><option>Health</option>
+          <option>Projects</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row form-row-1"><div class="form-group">
+      <label class="form-label">Due Date (optional)</label>
+      <input type="date" id="task-due">
+    </div></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('m-task')">Cancel</button>
+      <button class="btn btn-primary" onclick="addTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Habit Modal -->
+<div class="modal-overlay" id="m-habit">
+  <div class="modal">
+    <div class="modal-title">New Habit</div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Emoji</label>
+        <input type="text" id="habit-emoji" placeholder="💪" maxlength="2" style="font-size:22px;text-align:center">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Color</label>
+        <select id="habit-color">
+          <option value="terracotta">🟠 Terracotta</option>
+          <option value="forest">🟢 Forest</option>
+          <option value="sky">🔵 Sky</option>
+          <option value="gold">🟡 Gold</option>
+          <option value="rose">🔴 Rose</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row form-row-1"><div class="form-group">
+      <label class="form-label">Habit Name</label>
+      <input type="text" id="habit-name" placeholder="e.g. Morning Workout">
+    </div></div>
+    
+    <div class="toggle-row">
+      <div class="form-label" style="margin-bottom:0">REPEAT EVERY WEEK</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <label class="toggle-switch">
+          <input type="checkbox" id="habit-repeat-toggle" onchange="toggleHabitRepeat()">
+          <span class="slider"></span>
+        </label>
+        <span id="habit-repeat-status" style="font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--muted)">Off</span>
+      </div>
+    </div>
+
+    <div id="habit-days-wrapper" style="display:none; transition: all 0.3s ease">
+      <div class="form-label">REPEAT ON DAYS</div>
+      <div class="day-pills" id="habit-day-pills">
+        <div class="day-pill" data-day="0" onclick="toggleHabitDay(this)">Mon</div>
+        <div class="day-pill" data-day="1" onclick="toggleHabitDay(this)">Tue</div>
+        <div class="day-pill" data-day="2" onclick="toggleHabitDay(this)">Wed</div>
+        <div class="day-pill" data-day="3" onclick="toggleHabitDay(this)">Thu</div>
+        <div class="day-pill" data-day="4" onclick="toggleHabitDay(this)">Fri</div>
+        <div class="day-pill" data-day="5" onclick="toggleHabitDay(this)">Sat</div>
+        <div class="day-pill" data-day="6" onclick="toggleHabitDay(this)">Sun</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:12px;line-height:1.5;">
+        ✓ Dots auto-appear on scheduled days each week — no re-adding needed.
+      </div>
+      <div style="border-bottom: 1px solid var(--border); margin-top:20px; margin-bottom: 4px;"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('m-habit')">Cancel</button>
+      <button class="btn btn-primary" onclick="addHabit()">Create Habit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Modal -->
+<div class="modal-overlay" id="m-event">
+  <div class="modal">
+    <div class="modal-title">New Event</div>
+    <div class="form-row form-row-1"><div class="form-group">
+      <label class="form-label">Event Title</label>
+      <input type="text" id="event-title" placeholder="e.g. NIFTY Options Expiry">
+    </div></div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" id="event-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Time (optional)</label>
+        <input type="time" id="event-time">
+      </div>
+    </div>
+    <div class="form-row form-row-1"><div class="form-group">
+      <label class="form-label">Color</label>
+      <select id="event-color">
+        <option value="terracotta">🟠 Terracotta</option>
+        <option value="forest">🟢 Forest</option>
+        <option value="sky">🔵 Sky</option>
+        <option value="gold">🟡 Gold</option>
+        <option value="rose">🔴 Rose</option>
+      </select>
+    </div></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('m-event')">Cancel</button>
+      <button class="btn btn-primary" onclick="addEvent()">Add Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Food Log Modal -->
+<div class="modal-overlay" id="m-food">
+  <div class="modal">
+    <div class="modal-title">Log Food</div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Meal</label>
+        <select id="food-meal">
+          <option value="breakfast">🌅 Breakfast</option>
+          <option value="lunch">☀️ Lunch</option>
+          <option value="dinner">🌙 Dinner</option>
+          <option value="snacks">🍎 Snacks</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" id="food-date">
+      </div>
+    </div>
+    <div class="form-row form-row-1">
+      <div class="form-group">
+        <label class="form-label">Food Name</label>
+        <input type="text" id="food-name" placeholder="e.g. Brown Rice Bowl">
+      </div>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Quantity</label>
+        <input type="text" id="food-qty" placeholder="e.g. 1 cup / 150g">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Calories (kcal)</label>
+        <input type="number" id="food-cal" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="form-row form-row-3">
+      <div class="form-group">
+        <label class="form-label">Protein (g)</label>
+        <input type="number" id="food-protein" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Carbs (g)</label>
+        <input type="number" id="food-carbs" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fat (g)</label>
+        <input type="number" id="food-fat" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('m-food')">Cancel</button>
+      <button class="btn btn-primary" onclick="addFood()">Log Food</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Toast -->
+<div class="toast" id="toast"><span id="toast-icon"></span><span id="toast-msg"></span></div>
+
+<script src='/script_content.js'></script>
+</body>
+</html>
