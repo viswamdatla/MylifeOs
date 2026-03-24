@@ -1,6 +1,35 @@
 const lifeosToken = localStorage.getItem('lifeos-token');
 if (!lifeosToken) window.location.href = '/login.html';
 
+// Decode JWT to get user name
+let userName = "User";
+try {
+  const payloadBase64 = lifeosToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+  const payload = JSON.parse(decodeURIComponent(atob(payloadBase64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+  if (payload.user_metadata && payload.user_metadata.full_name) {
+    userName = payload.user_metadata.full_name.split(' ')[0]; // Extract first name
+  }
+} catch (e) {
+  console.error("Could not parse JWT", e);
+}
+
+function updateGreeting() {
+  const hour = new Date().getHours();
+  let timeGreeting = "Good evening";
+  if (hour < 12) timeGreeting = "Good morning";
+  else if (hour < 18) timeGreeting = "Good afternoon";
+
+  const titleEl = document.querySelector('.header-title');
+  if (titleEl) {
+    titleEl.innerHTML = `${timeGreeting}, ${userName} <span>👋</span>`;
+  }
+}
+document.addEventListener('DOMContentLoaded', updateGreeting);
+// Call immediately in case DOM is already loaded
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  updateGreeting();
+}
+
 const originalFetch = window.fetch;
 window.fetch = async function () {
   let [resource, config] = arguments;

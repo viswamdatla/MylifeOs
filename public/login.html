@@ -99,6 +99,11 @@
     <div id="error-box" class="error-msg"></div>
     <div id="success-box" class="success-msg"></div>
 
+    <div class="form-group hidden" id="name-group">
+      <label>Full Name</label>
+      <input type="text" id="auth-name" placeholder="John Doe">
+    </div>
+
     <div class="form-group">
       <label>Email Address</label>
       <input type="email" id="auth-email" placeholder="you@example.com">
@@ -174,10 +179,14 @@
         backBtn.classList.add('hidden');
         
         if (mode === 'login') {
+          const nameGroup = document.getElementById('name-group');
+          if(nameGroup) nameGroup.classList.add('hidden');
           forgotBtn.classList.remove('hidden');
           actionBtn.textContent = 'Log In';
           subtitle.textContent = 'Log in to your dashboard';
         } else {
+          const nameGroup = document.getElementById('name-group');
+          if(nameGroup) nameGroup.classList.remove('hidden');
           forgotBtn.classList.add('hidden');
           actionBtn.textContent = 'Create Account';
           subtitle.textContent = 'Create a new account';
@@ -203,6 +212,9 @@
     async function handleAuthAction() {
       const email = document.getElementById('auth-email').value.trim();
       const password = document.getElementById('auth-password').value;
+      const nameGroup = document.getElementById('auth-name');
+      const name = nameGroup ? nameGroup.value.trim() : '';
+
       const errorBox = document.getElementById('error-box');
       const successBox = document.getElementById('success-box');
       const btn = document.getElementById('action-btn');
@@ -212,6 +224,7 @@
 
       if (!email) return showError("Please enter an email address");
       if (authMode !== 'forgot' && !password) return showError("Please enter a password");
+      if (authMode === 'signup' && !name) return showError("Please enter your full name");
 
       btn.disabled = true;
       const originalText = btn.textContent;
@@ -219,7 +232,11 @@
 
       try {
         if (authMode === 'signup') {
-          const { data, error } = await sbClient.auth.signUp({ email, password });
+          const { data, error } = await sbClient.auth.signUp({ 
+            email, 
+            password,
+            options: { data: { full_name: name } }
+          });
           if (error) throw error;
           showSuccess("Account created! Please check your email to confirm.");
         } 
