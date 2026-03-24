@@ -88,7 +88,7 @@
     </div>
 
     <!-- Google Auth -->
-    <div id="google-section">
+    <div id="google-section" class="hidden">
       <button class="btn-google" onclick="signInWithGoogle()">
         <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google">
         Continue with Google
@@ -175,7 +175,7 @@
         document.getElementById('tab-signup').classList.toggle('active', mode === 'signup');
         pwdGroup.classList.remove('hidden');
         tabs.classList.remove('hidden');
-        googleSec.classList.remove('hidden');
+        // googleSec.classList.remove('hidden'); // Currently disabled by user
         backBtn.classList.add('hidden');
         
         if (mode === 'login') {
