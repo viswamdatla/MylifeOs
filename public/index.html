@@ -1030,6 +1030,67 @@ textarea { resize: vertical; min-height: 72px; }
   .macro-rings { grid-template-columns: 1fr 1fr; }
 }
 
+/* ── RESPONSIVE DESIGN (TAB & MOBILE) ── */
+@media (max-width: 1024px) {
+  .content { padding: 32px 24px; }
+  .grid-main { grid-template-columns: 1fr; gap: 24px; }
+  .grid-2 { grid-template-columns: 1fr; gap: 24px; }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  
+  .sidebar { width: 200px; }
+  .nav-btn { padding: 10px 16px; }
+}
+
+@media (max-width: 768px) {
+  .shell { display: block; }
+  .sidebar {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 65px;
+    flex-direction: row;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    z-index: 1000;
+  }
+  .sidebar-brand, .sidebar-date, .sidebar-footer, .nav-section-label, .nav-spacer {
+    display: none !important;
+  }
+  .sidebar-nav {
+    flex-direction: row;
+    padding: 0;
+    width: 100%;
+    justify-content: space-around;
+    align-items: center;
+  }
+  .nav-btn {
+    flex-direction: column;
+    padding: 6px 0;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    max-width: 65px;
+  }
+  .nav-icon { width: auto; font-size: 20px; }
+  .nav-label { font-size: 10px; }
+  .nav-badge { display: none !important; }
+  .nav-btn.active { background: transparent; }
+  .nav-btn.active::before {
+    top: 0; left: 50%; bottom: auto;
+    transform: translateX(-50%);
+    width: 24px; height: 3px;
+    border-radius: 0 0 3px 3px;
+  }
+
+  /* Padding prevents the fixed bottom navbar from overlaying scrollable text */
+  .content { padding: 20px 16px 85px 16px; }
+  .modal-card { width: 95%; padding: 24px 20px; margin: 10px; }
+  
+  /* Stack 3-column elements horizontally into singular stacks */
+  .grid-3 { grid-template-columns: 1fr; gap: 12px; }
+}
+
 </style>
 </head>
 
@@ -1083,7 +1144,7 @@ textarea { resize: vertical; min-height: 72px; }
       <span class="nav-label">Calendar</span>
       <span class="nav-badge" id="nb-events">0</span>
     </button>
-    <div style="flex: 1;"></div>
+    <div class="nav-spacer" style="flex: 1;"></div>
     <button class="nav-btn" style="color:#ff3b30; font-weight: 500;" onclick="logout()">
       <span class="nav-icon">⏏</span>
       <span class="nav-label">Logout</span>
