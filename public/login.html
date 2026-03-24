@@ -278,8 +278,10 @@
         errorBox.textContent = error.message;
         errorBox.style.display = 'block';
       } else {
-        alert("Password updated successfully!");
-        window.location.href = '/';
+        alert("Password updated successfully! Please log in with your new password.");
+        await sbClient.auth.signOut();
+        localStorage.clear();
+        window.location.href = '/login.html';
       }
     }
 
