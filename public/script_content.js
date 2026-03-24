@@ -17,9 +17,20 @@ window.fetch = async function () {
 };
 
 function logout() {
-  localStorage.removeItem('lifeos-token');
+  localStorage.clear();
   window.location.href = '/login.html';
 }
+
+// Inactivity Timeout (10 minutes)
+let inactivityTimer;
+function resetInactivity() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(logout, 10 * 60 * 1000);
+}
+['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(e => 
+  document.addEventListener(e, resetInactivity)
+);
+resetInactivity();
 
 // ═══════════════ STATE ═══════════════
 const COLORS = {
