@@ -119,8 +119,13 @@
 
   <div class="auth-card" id="auth-step-1">
     <h1 class="auth-title">LifeOS</h1>
-    <div class="auth-subtitle">Secure Passwordless Login</div>
+    <div class="auth-subtitle">Secure Passwordless Access</div>
     
+    <div class="auth-tabs" style="display:flex; gap:8px; margin-bottom:24px; padding:4px; background:var(--bg); border-radius:8px;">
+      <button class="auth-tab active" id="tab-login" onclick="setMode('login')" style="flex:1; padding:10px; border:none; border-radius:6px; background:var(--card-bg); font-weight:600; color:var(--text); box-shadow:0 2px 8px rgba(0,0,0,0.05); cursor:pointer; transition:all 0.2s;">Log In</button>
+      <button class="auth-tab" id="tab-signup" onclick="setMode('signup')" style="flex:1; padding:10px; border:none; background:none; color:var(--muted); font-weight:500; cursor:pointer; transition:all 0.2s;">Sign Up</button>
+    </div>
+
     <div id="error-box" class="error-msg"></div>
 
     <div class="form-group">
@@ -128,7 +133,7 @@
       <input type="email" id="auth-email" placeholder="you@example.com">
     </div>
 
-    <button class="btn" id="send-btn" onclick="sendOtp()">Send Magic Code</button>
+    <button class="btn" id="send-btn" onclick="sendOtp()">Send Magic Link</button>
   </div>
 
   <div class="auth-card" id="auth-step-2" style="display: none;">
@@ -161,6 +166,38 @@
     });
 
     let currentEmail = "";
+    let authMode = 'login'; // Defaults to Log In
+
+    function setMode(mode) {
+      authMode = mode;
+      const tabLogin = document.getElementById('tab-login');
+      const tabSignup = document.getElementById('tab-signup');
+      
+      if (mode === 'login') {
+        tabLogin.style.background = 'var(--card-bg)';
+        tabLogin.style.color = 'var(--text)';
+        tabLogin.style.fontWeight = '600';
+        tabLogin.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+        
+        tabSignup.style.background = 'none';
+        tabSignup.style.color = 'var(--muted)';
+        tabSignup.style.fontWeight = '500';
+        tabSignup.style.boxShadow = 'none';
+      } else {
+        tabSignup.style.background = 'var(--card-bg)';
+        tabSignup.style.color = 'var(--text)';
+        tabSignup.style.fontWeight = '600';
+        tabSignup.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+        
+        tabLogin.style.background = 'none';
+        tabLogin.style.color = 'var(--muted)';
+        tabLogin.style.fontWeight = '500';
+        tabLogin.style.boxShadow = 'none';
+      }
+      
+      document.getElementById('send-btn').textContent = mode === 'login' ? 'Send Magic Link' : 'Create Account';
+      document.getElementById('error-box').style.display = 'none';
+    }
 
     async function sendOtp() {
       const email = document.getElementById('auth-email').value.trim();
@@ -178,15 +215,19 @@
       const { data, error } = await sbClient.auth.signInWithOtp({
         email: email,
         options: { 
-          shouldCreateUser: true,
+          shouldCreateUser: authMode === 'signup',
           emailRedirectTo: window.location.href 
         }
       });
 
-      document.getElementById('send-btn').textContent = "Send Magic Code";
+      document.getElementById('send-btn').textContent = authMode === 'login' ? 'Send Magic Link' : 'Create Account';
 
       if (error) {
-        errorBox.textContent = error.message;
+        if (error.message.toLowerCase().includes("signups not allowed")) {
+           errorBox.textContent = "Account not found. Please click 'Sign Up' first.";
+        } else {
+           errorBox.textContent = error.message;
+        }
         errorBox.style.display = 'block';
       } else {
         currentEmail = email;
