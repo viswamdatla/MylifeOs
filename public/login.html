@@ -153,7 +153,8 @@
 
     // Automatically log in if the user clicks the Magic Link in their email
     sbClient.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+      // Magic Links load the page with INITIAL_SESSION state
+      if (session) {
         localStorage.setItem('lifeos-token', session.access_token);
         window.location.href = '/';
       }
