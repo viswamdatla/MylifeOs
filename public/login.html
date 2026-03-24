@@ -145,8 +145,10 @@
     let authMode = 'login'; // 'login', 'signup', 'forgot'
 
     sbClient.auth.onAuthStateChange((event, session) => {
+      const isRecovery = window.location.hash.includes('type=recovery') || event === 'PASSWORD_RECOVERY';
+
       // If the user clicked a "Reset Password" link in their email:
-      if (event === 'PASSWORD_RECOVERY') {
+      if (isRecovery) {
         document.getElementById('auth-main').classList.add('hidden');
         document.getElementById('auth-reset').classList.remove('hidden');
       } 
