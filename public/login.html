@@ -143,12 +143,14 @@
     const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let authMode = 'login'; // 'login', 'signup', 'forgot'
+    let isResettingPassword = false;
 
     sbClient.auth.onAuthStateChange((event, session) => {
-      const isRecovery = window.location.hash.includes('type=recovery') || event === 'PASSWORD_RECOVERY';
+      if (window.location.hash.includes('type=recovery') || event === 'PASSWORD_RECOVERY') {
+        isResettingPassword = true;
+      }
 
-      // If the user clicked a "Reset Password" link in their email:
-      if (isRecovery) {
+      if (isResettingPassword) {
         document.getElementById('auth-main').classList.add('hidden');
         document.getElementById('auth-reset').classList.remove('hidden');
       } 
