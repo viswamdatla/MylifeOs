@@ -176,7 +176,10 @@
 
       const { data, error } = await sbClient.auth.signInWithOtp({
         email: email,
-        options: { shouldCreateUser: true }
+        options: { 
+          shouldCreateUser: true,
+          emailRedirectTo: window.location.href 
+        }
       });
 
       document.getElementById('send-btn').textContent = "Send Magic Code";
